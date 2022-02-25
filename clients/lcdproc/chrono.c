@@ -400,7 +400,7 @@ big_clock_screen(int rep, int display, int *flags_ptr)
 	char fulltxt[16];
 	static char old_fulltxt[16];
 	static int heartbeat = 0;
-	static int TwentyFourHour = 1;
+	static int TwentyFourHour = 0;
 	int j = 0;
 	int digits = (lcd_wid >= 20) ? 6 : 4;
 	int xoffs = 0;
@@ -443,7 +443,15 @@ big_clock_screen(int rep, int display, int *flags_ptr)
 
 	for (j = 0; j < digits; j++) {
 		if (fulltxt[j] != old_fulltxt[j]) {
-			sock_printf(sock, "widget_set K d%d %d %c\n", j, xoffs+pos[j], fulltxt[j]);
+			if ((j == 0) && (fulltxt[j] == '0')) {
+                               sock_send_string(sock, "widget_del K d0\n");
+                       } else if ((j == 0) && (fulltxt[j] != '0')) {
+                               sock_send_string(sock, "widget_del K d0\n");
+                               sock_send_string(sock, "widget_add K d0 num\n");
+                               sock_printf(sock, "widget_set K d%d %d %c\n", j, xoffs+pos[j], fulltxt[j]);
+                       } else {
+                               sock_printf(sock, "widget_set K d%d %d %c\n", j, xoffs+pos[j], fulltxt[j]);
+                       }
 			old_fulltxt[j] = fulltxt[j];
 		}
 	}
